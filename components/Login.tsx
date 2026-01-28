@@ -20,10 +20,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[#050b14] relative overflow-hidden font-sans text-slate-200">
-      
+
       {/* --- Animated Background Effects --- */}
       <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[100px] animate-pulse"></div>
-      <div className="absolute bottom-[-10%] right-[-5%] w-[600px] h-[600px] bg-purple-600/20 rounded-full blur-[120px] animate-pulse" style={{animationDuration: '4s'}}></div>
+      <div className="absolute bottom-[-10%] right-[-5%] w-[600px] h-[600px] bg-purple-600/20 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '4s' }}></div>
       <div className="absolute top-[40%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-900/10 rounded-full blur-[100px]"></div>
 
       {/* Grid Pattern Overlay */}
@@ -32,22 +32,22 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
       <div className="w-full max-w-md p-6 relative z-10 perspective-1000">
         <div className="bg-slate-900/40 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-2xl shadow-black/50 ring-1 ring-white/5 transform transition-all duration-500 hover:scale-[1.01]">
-          
+
           {/* Logo Section */}
           <div className="text-center mb-10">
             <div className="relative w-16 h-16 mx-auto mb-6 group">
-               <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl blur-lg opacity-75 group-hover:opacity-100 transition-opacity duration-500"></div>
-               <div className="relative w-full h-full bg-slate-900 border border-slate-700 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-inner overflow-hidden">
-                 <span className="bg-clip-text text-transparent bg-gradient-to-br from-indigo-400 to-purple-400 z-10">AI</span>
-                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-               </div>
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl blur-lg opacity-75 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="relative w-full h-full bg-slate-900 border border-slate-700 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-inner overflow-hidden">
+                <span className="bg-clip-text text-transparent bg-gradient-to-br from-indigo-400 to-purple-400 z-10">AI</span>
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              </div>
             </div>
             <h1 className="text-3xl font-bold text-white tracking-tight">Comic Studio</h1>
             <p className="text-slate-400 mt-2 text-sm">Enter the future of storytelling</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            
+
             {/* Phone Input */}
             <div className="group">
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 group-focus-within:text-indigo-400 transition-colors">
@@ -67,18 +67,18 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 />
               </div>
             </div>
-            
+
             {/* Password Input */}
             <div className="group">
               <div className="flex justify-between items-center mb-2">
-                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider group-focus-within:text-indigo-400 transition-colors">
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider group-focus-within:text-indigo-400 transition-colors">
                   Password
                 </label>
                 <a href="#" className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">Forgot?</a>
               </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 group-focus-within:text-indigo-400 transition-colors">
-                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                 </div>
                 <input
                   type="password"
@@ -119,10 +119,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             </p>
           </div>
         </div>
-        
+
         {/* Footer info */}
         <div className="text-center mt-6 text-xs text-slate-600">
-          © 2024 AI Comic Studio. All rights reserved.
+          © 2026 AI Comic Studio. All rights reserved.
         </div>
       </div>
     </div>
