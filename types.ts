@@ -12,6 +12,20 @@ export enum AppView {
   ASSETS_OFFICIAL = 'ASSETS_OFFICIAL',
 }
 
+export enum SoraGenerationMode {
+  TEXT_TO_VIDEO = 'text_to_video',
+  IMAGE_TO_VIDEO = 'image_to_video',
+  KEYFRAME_TO_VIDEO = 'keyframe_to_video',
+  VIDEO_EXTENSION = 'video_extension',
+}
+
+export enum NanobananaGenerationMode {
+  TEXT_TO_IMAGE = 'text_to_image',
+  IMAGE_TO_IMAGE = 'image_to_image',
+  INPAINTING = 'inpainting',
+  CONTROLNET = 'controlnet',
+}
+
 export interface User {
   id: string;
   name: string;
