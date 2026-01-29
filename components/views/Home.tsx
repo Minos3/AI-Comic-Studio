@@ -114,7 +114,7 @@ const Home: React.FC<HomeProps> = ({ onSelectProject }) => {
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
                 <span className="font-bold text-white text-lg">AI</span>
               </div>
-              <h1 className="text-3xl font-bold text-white">Comic Studio</h1>
+              <h1 className="text-3xl font-bold text-white tracking-tight">梦境AI短剧平台</h1>
             </div>
             <p className="text-slate-400">选择一个项目开始创作，或创建新项目</p>
           </div>
@@ -157,7 +157,7 @@ const Home: React.FC<HomeProps> = ({ onSelectProject }) => {
                   className="text-slate-500 hover:text-white p-1 hover:bg-slate-800 rounded transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
                   title="修改项目"
                 >
-                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002-2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                 </button>
               </div>
               
