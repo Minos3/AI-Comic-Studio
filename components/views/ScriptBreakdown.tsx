@@ -205,15 +205,20 @@ const ScriptBreakdown: React.FC<ScriptBreakdownProps> = ({ onChangeView, project
                  <div className="text-[11px] text-slate-600">系统会结合剧本自动识别角色、场景、物品等实体。</div>
                </div>
                
-               {/* Resized and centered Progress Bar - Smaller as requested */}
+               {/* Fixed Circular Progress */}
                <div className="relative w-16 h-16 shrink-0 ml-4">
-                 <svg className="w-full h-full -rotate-90 block">
-                   <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="5" fill="transparent" className="text-slate-800" />
-                   <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="5" fill="transparent" strokeDasharray={175.9} strokeDashoffset={175.9 - (175.9 * progress) / 100} className="text-primary transition-all duration-300" strokeLinecap="round" />
+                 <svg className="w-full h-full -rotate-90 block" viewBox="0 0 100 100">
+                   <circle cx="50" cy="50" r="42" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-800" />
+                   <circle cx="50" cy="50" r="42" stroke="currentColor" strokeWidth="8" fill="transparent" 
+                    strokeDasharray="263.89" 
+                    strokeDashoffset={263.89 - (263.89 * progress) / 100} 
+                    className="text-primary transition-all duration-300" 
+                    strokeLinecap="round" 
+                   />
                  </svg>
                  <div className="absolute inset-0 flex flex-col items-center justify-center">
                     <span className="text-lg font-black text-white leading-none">{progress}%</span>
-                    <span className="text-[7px] text-slate-500 mt-0.5 whitespace-nowrap">已完成 {analysisData.episodes}/0</span>
+                    <span className="text-[7px] text-slate-500 mt-0.5 whitespace-nowrap">已完成 {analysisData.episodes}/{analysisData.episodes || 1}</span>
                  </div>
                </div>
             </div>

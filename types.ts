@@ -21,13 +21,24 @@ export interface User {
   avatar: string;
 }
 
+export interface ProjectPreferences {
+  imageModel: string;
+  videoModel: string;
+  textModel: string;
+  artStyle: string;
+  videoRatio: string;
+}
+
 export interface Project {
   id: string;
   name: string;
   scripts: string[];
   remark: string;
+  description?: string;
+  coverUrl?: string;
   createDate: string;
   status: 'Draft' | 'In Progress' | 'Completed';
+  preferences?: ProjectPreferences;
 }
 
 export interface ScriptProject {
