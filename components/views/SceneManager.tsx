@@ -153,8 +153,23 @@ const SceneManager: React.FC<{ projectId?: number }> = ({ projectId }) => {
     return <div className="h-full flex items-center justify-center bg-[#05080f] text-slate-500">加载中...</div>;
   }
 
+  const renderCreateSceneModal = () => (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+      <div className="bg-[#0b0f1a] border border-slate-700 rounded-2xl w-full max-w-md shadow-2xl">
+        <div className="p-4 border-b border-slate-800 flex justify-between"><h3 className="font-bold text-white">新建场景</h3><button onClick={() => setShowCreate(false)} className="text-slate-400 hover:text-white"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button></div>
+        <form onSubmit={handleCreateScene} className="p-6 space-y-4">
+          <div><label className="text-xs font-bold text-slate-400 uppercase block mb-2">名称</label><input value={newName} onChange={(e) => setNewName(e.target.value)} className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-white outline-none focus:border-primary" placeholder="例如：南城别墅大厅" required /></div>
+          <div><label className="text-xs font-bold text-slate-400 uppercase block mb-2">描述</label><textarea value={newDesc} onChange={(e) => setNewDesc(e.target.value)} className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-white outline-none focus:border-primary h-24 resize-none" placeholder="场景环境、光影描述..." /></div>
+          <div><label className="text-xs font-bold text-slate-400 uppercase block mb-2">风格关键词</label><input value={newKeywords} onChange={(e) => setNewKeywords(e.target.value)} className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-white outline-none focus:border-primary" placeholder="modern, interior, warm light" /></div>
+          <button type="submit" className="w-full bg-primary text-white font-bold py-3 rounded-xl hover:bg-indigo-600 transition-colors">创建场景</button>
+        </form>
+      </div>
+    </div>
+  );
+
   if (!activeScene) {
     return (
+      <>
       <div className="h-full flex items-center justify-center bg-[#05080f]">
         <div className="text-center">
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-800/40 flex items-center justify-center">
@@ -168,6 +183,8 @@ const SceneManager: React.FC<{ projectId?: number }> = ({ projectId }) => {
           </button>
         </div>
       </div>
+      {showCreate && renderCreateSceneModal()}
+      </>
     );
   }
 
@@ -370,20 +387,7 @@ const SceneManager: React.FC<{ projectId?: number }> = ({ projectId }) => {
         </div>
       )}
 
-      {/* Create modal */}
-      {showCreate && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
-          <div className="bg-[#0b0f1a] border border-slate-700 rounded-2xl w-full max-w-md shadow-2xl">
-            <div className="p-4 border-b border-slate-800 flex justify-between"><h3 className="font-bold text-white">新建场景</h3><button onClick={() => setShowCreate(false)} className="text-slate-400 hover:text-white"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button></div>
-            <form onSubmit={handleCreateScene} className="p-6 space-y-4">
-              <div><label className="text-xs font-bold text-slate-400 uppercase block mb-2">场景名称</label><input value={newName} onChange={(e) => setNewName(e.target.value)} className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-white outline-none focus:border-primary" placeholder="例如：南城别墅大厅" required /></div>
-              <div><label className="text-xs font-bold text-slate-400 uppercase block mb-2">描述</label><textarea value={newDesc} onChange={(e) => setNewDesc(e.target.value)} className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-white outline-none focus:border-primary h-24 resize-none" placeholder="场景的环境、风格、光影描述..." /></div>
-              <div><label className="text-xs font-bold text-slate-400 uppercase block mb-2">风格关键词</label><input value={newKeywords} onChange={(e) => setNewKeywords(e.target.value)} className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-white outline-none focus:border-primary" placeholder="例如：modern, interior, warm light" /></div>
-              <button type="submit" className="w-full bg-primary text-white font-bold py-3 rounded-xl hover:bg-indigo-600 transition-colors">创建场景</button>
-            </form>
-          </div>
-        </div>
-      )}
+      {showCreate && renderCreateSceneModal()}
     </div>
   );
 };
