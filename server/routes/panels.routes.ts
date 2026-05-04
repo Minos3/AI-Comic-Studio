@@ -228,12 +228,13 @@ router.patch('/characters/:characterId', async (req, res) => {
     return res.status(403).json({ success: false, error: { code: 'FORBIDDEN', message: 'Insufficient permissions' } });
   }
 
-  const { name, gender, age, appearanceDescription } = req.body;
+  const { name, gender, age, appearanceDescription, portraitUrl } = req.body;
   const updates: Record<string, string> = {};
   if (name !== undefined) updates.name = name;
   if (gender !== undefined) updates.gender = gender;
   if (age !== undefined) updates.age = age;
   if (appearanceDescription !== undefined) updates.appearanceDescription = appearanceDescription;
+  if (portraitUrl !== undefined) updates.portraitUrl = portraitUrl;
 
   if (Object.keys(updates).length === 0) {
     return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'No valid fields to update' } });
@@ -260,11 +261,12 @@ router.patch('/scenes/:sceneId', async (req, res) => {
     return res.status(403).json({ success: false, error: { code: 'FORBIDDEN', message: 'Insufficient permissions' } });
   }
 
-  const { name, description, styleKeywords } = req.body;
+  const { name, description, styleKeywords, mainImageUrl } = req.body;
   const updates: Record<string, string> = {};
   if (name !== undefined) updates.name = name;
   if (description !== undefined) updates.description = description;
   if (styleKeywords !== undefined) updates.styleKeywords = styleKeywords;
+  if (mainImageUrl !== undefined) updates.mainImageUrl = mainImageUrl;
 
   if (Object.keys(updates).length === 0) {
     return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'No valid fields to update' } });

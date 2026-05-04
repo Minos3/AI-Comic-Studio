@@ -141,7 +141,7 @@ const SceneManager: React.FC<{ projectId?: number }> = ({ projectId }) => {
 
   const sceneImageRef = useRef<HTMLInputElement>(null);
 
-  const handleUploadSceneImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUploadSceneImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !activeScene) return;
     const reader = new FileReader();
@@ -149,8 +149,9 @@ const SceneManager: React.FC<{ projectId?: number }> = ({ projectId }) => {
       try {
         await api.patch(`/scenes/${activeScene.id}`, { mainImageUrl: reader.result as string });
         updateActiveScene({ mainImageUrl: reader.result as string });
-      } catch { alert('上传失败'); }
+      } catch { alert('上传失败，请重试'); }
     };
+    reader.onerror = () => alert('文件读取失败');
     reader.readAsDataURL(file);
     if (sceneImageRef.current) sceneImageRef.current.value = '';
   };

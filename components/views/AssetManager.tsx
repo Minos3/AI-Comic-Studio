@@ -114,31 +114,19 @@ const AssetManager: React.FC<{ type: AppView; projectId?: number }> = ({ type, p
 
   const portraitInputRef = useRef<HTMLInputElement>(null);
 
-  const handleUploadPortrait = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUploadPortrait = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !projectId || !activeChar) return;
-    const form = new FormData();
-    form.append('file', file);
-    try {
-      const res = await api.post(`/projects/${projectId}/characters/upload-portrait/${activeChar.id}`, form, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      if (res.data.success) {
-        updateActiveChar({ portraitUrl: res.data.data.url as any });
-      }
-    } catch (err: any) {
-      // Fallback: convert to data URL and update via PATCH
-      const reader = new FileReader();
-      reader.onload = async () => {
-        try {
-          await api.patch(`/characters/${activeChar.id}`, { portraitUrl: reader.result as string });
-          updateActiveChar({ portraitUrl: reader.result as any });
-        } catch { alert('上传失败'); }
-      };
-      reader.readAsDataURL(file);
-    } finally {
-      if (portraitInputRef.current) portraitInputRef.current.value = '';
-    }
+    if (!file || !activeChar) return;
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        await api.patch(`/characters/${activeChar.id}`, { portraitUrl: reader.result as string });
+        updateActiveChar({ portraitUrl: reader.result as any });
+      } catch { alert('上传失败，请重试'); }
+    };
+    reader.onerror = () => alert('文件读取失败');
+    reader.readAsDataURL(file);
+    if (portraitInputRef.current) portraitInputRef.current.value = '';
   };
 
   const handleGeneratePortrait = async () => {
