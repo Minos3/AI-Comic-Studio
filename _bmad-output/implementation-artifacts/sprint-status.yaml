@@ -73,11 +73,11 @@ development_status:
   epic-4-retrospective: optional
 
   # Epic 5: 图片生成与任务管理
-  epic-5: backlog
-  5-1-task-state-machine-and-websocket-realtime-push: backlog
-  5-2-image-generation-adapters-nanobanana-jimeng: backlog
-  5-3-image-generation-task-submission-and-result-display: backlog
-  5-4-model-switch-retry-manual-upload-and-error-handling: backlog
+  epic-5: done
+  5-1-task-state-machine-and-websocket-realtime-push: done
+  5-2-image-generation-adapters-nanobanana-jimeng: done
+  5-3-image-generation-task-submission-and-result-display: done
+  5-4-model-switch-retry-manual-upload-and-error-handling: done
   epic-5-retrospective: optional
 
   # Epic 6: 视频生成
@@ -87,10 +87,10 @@ development_status:
   epic-6-retrospective: optional
 
   # Epic 7: 后台管理与运维
-  epic-7: in-progress
+  epic-7: done
   7-1-style-template-management: done
-  7-2-model-config-management-and-default-switch: backlog
-  7-3-api-error-alerting-and-restart-recovery: backlog
+  7-2-model-config-management-and-default-switch: done
+  7-3-api-error-alerting-and-restart-recovery: done
   epic-7-retrospective: optional
 
   # Epic 8: 预览与体验优化
