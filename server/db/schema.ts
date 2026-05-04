@@ -92,6 +92,26 @@ export const scenes = sqliteTable('scenes', {
   updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
 });
 
+export const items = sqliteTable('items', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  projectId: integer('project_id').references(() => projects.id).notNull(),
+  name: text('name').notNull(),
+  description: text('description').default(''),
+  imageUrl: text('image_url'),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+export const creatures = sqliteTable('creatures', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  projectId: integer('project_id').references(() => projects.id).notNull(),
+  name: text('name').notNull(),
+  description: text('description').default(''),
+  imageUrl: text('image_url'),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
 export const aiModels = sqliteTable('ai_models', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),

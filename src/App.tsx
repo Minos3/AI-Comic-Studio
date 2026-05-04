@@ -40,16 +40,16 @@ const LegacyWorkspace: React.FC = () => {
       case AppView.SCRIPT_BREAKDOWN:
         return <ScriptBreakdown onChangeView={setCurrentView} project={selectedProject} />;
       case AppView.ASSETS_CHARACTERS:
-        return <AssetManager type={currentView} />;
+        return <AssetManager type={currentView} projectId={selectedProject?.id} />;
       case AppView.ASSETS_ITEMS:
-        return <ItemManager />;
+        return <ItemManager projectId={selectedProject?.id} />;
       case AppView.ASSETS_IMAGES:
-        return <SceneManager />;
+        return <SceneManager projectId={selectedProject?.id} />;
       case AppView.ASSETS_GENERAL:
-        return <CreatureManager />;
+        return <CreatureManager projectId={selectedProject?.id} />;
       case AppView.ASSETS_VIDEO:
       case AppView.ASSETS_OFFICIAL:
-        return <AssetManager type={currentView} />;
+        return <AssetManager type={currentView} projectId={selectedProject?.id} />;
       case AppView.CREATION_TASKS:
         return <CreationTasks project={selectedProject} onProjectUpdated={handleProjectUpdated} />;
       default:

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppView } from '../../types.ts';
+import { api } from '../../src/lib/api';
 
 interface Appearance {
   id: string;
@@ -58,12 +59,37 @@ const MOCK_CHARACTERS: Character[] = [
   }
 ];
 
-const AssetManager: React.FC<{ type: AppView }> = ({ type }) => {
-  const [characters, setCharacters] = useState<Character[]>(MOCK_CHARACTERS);
-  const [selectedId, setSelectedId] = useState(MOCK_CHARACTERS[0].id);
+const AssetManager: React.FC<{ type: AppView; projectId?: number }> = ({ type, projectId }) => {
+  const [characters, setCharacters] = useState<Character[]>([]);
+  const [selectedId, setSelectedId] = useState('');
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingAppearance, setEditingAppearance] = useState<Appearance | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const loadCharacters = async () => {
+    if (!projectId) { setLoading(false); return; }
+    try {
+      const res = await api.get(`/projects/${projectId}/characters`);
+      if (res.data.success && res.data.data.length > 0) {
+        const mapped: Character[] = res.data.data.map((c: any) => ({
+          id: String(c.id),
+          name: c.name,
+          gender: c.gender || '其他',
+          age: c.age || '',
+          description: c.appearanceDescription || '',
+          portraitUrl: c.portraitUrl || `https://picsum.photos/seed/${c.id}/400/500`,
+          shortBio: c.appearanceDescription?.substring(0, 30) || '',
+          appearances: [],
+        }));
+        setCharacters(mapped as any);
+        setSelectedId((prev) => mapped.find((c: any) => c.id === prev) ? prev : mapped[0].id);
+      }
+    } catch {}
+    setLoading(false);
+  };
+
+  useEffect(() => { loadCharacters(); }, [projectId]);
 
   const activeChar = characters.find(c => c.id === selectedId) || characters[0];
 

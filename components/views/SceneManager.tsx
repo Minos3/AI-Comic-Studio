@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { api } from '../../src/lib/api';
 
 interface SceneVariation {
   id: string;
@@ -44,11 +45,33 @@ const MOCK_SCENES: SceneAsset[] = [
   }
 ];
 
-const SceneManager: React.FC = () => {
-  const [scenes, setScenes] = useState<SceneAsset[]>(MOCK_SCENES);
-  const [selectedId, setSelectedId] = useState(MOCK_SCENES[0].id);
+const SceneManager: React.FC<{ projectId?: number }> = ({ projectId }) => {
+  const [scenes, setScenes] = useState<SceneAsset[]>([]);
+  const [selectedId, setSelectedId] = useState('');
   const [editingVariation, setEditingVariation] = useState<SceneVariation | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const loadScenes = async () => {
+    if (!projectId) { setLoading(false); return; }
+    try {
+      const res = await api.get(`/projects/${projectId}/scenes`);
+      if (res.data.success && res.data.data.length > 0) {
+        const mapped: SceneAsset[] = res.data.data.map((s: any) => ({
+          id: String(s.id),
+          name: s.name,
+          description: s.description || '',
+          mainImageUrl: s.mainImageUrl || `https://picsum.photos/seed/${s.id}/800/450`,
+          variations: [],
+        }));
+        setScenes(mapped);
+        setSelectedId((prev) => mapped.find((s) => s.id === prev) ? prev : mapped[0].id);
+      }
+    } catch {}
+    setLoading(false);
+  };
+
+  useEffect(() => { loadScenes(); }, [projectId]);
 
   const activeScene = scenes.find(s => s.id === selectedId) || scenes[0];
 

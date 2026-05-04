@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import path from 'path';
+import mammoth from 'mammoth';
 import { and, asc, eq } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { episodes, projects, scripts } from '../db/schema.js';
@@ -82,7 +83,19 @@ router.post(
 
     if (req.file) {
       originalFilename = req.file.originalname;
-      content = req.file.buffer.toString('utf-8');
+      const ext = path.extname(originalFilename).toLowerCase();
+      if (ext === '.docx') {
+        const result = await mammoth.extractRawText({ buffer: req.file.buffer });
+        content = result.value;
+      } else if (ext === '.doc') {
+        // .doc (binary) is not fully supported; attempt utf-8, warn if binary
+        content = req.file.buffer.toString('utf-8');
+        if (content.includes('�')) {
+          return res.status(400).json({ success: false, error: { code: 'UNSUPPORTED_FORMAT', message: '.doc 格式暂不支持，请另存为 .docx 或 .txt 后上传' } });
+        }
+      } else {
+        content = req.file.buffer.toString('utf-8');
+      }
       // Store original file
       const storagePath = `projects/${projectId}/episodes/${episodeId}/${Date.now()}_${originalFilename}`;
       await storage.save(storagePath, req.file.buffer);
