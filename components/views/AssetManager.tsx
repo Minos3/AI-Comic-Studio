@@ -172,6 +172,24 @@ const AssetManager: React.FC<{ type: AppView; projectId?: number }> = ({ type, p
     </div>
   );
 
+  if (loading) {
+    return <div className="h-full flex items-center justify-center bg-[#05080f] text-slate-500">加载中...</div>;
+  }
+
+  if (!activeChar) {
+    return (
+      <div className="h-full flex items-center justify-center bg-[#05080f]">
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-800/40 flex items-center justify-center">
+            <svg className="w-8 h-8 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+          </div>
+          <p className="text-slate-500 text-sm mb-1">暂无角色数据</p>
+          <p className="text-slate-600 text-xs">AI 拆解剧本后会自动提取角色，或手动创建</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-full flex bg-[#05080f] text-slate-300 font-sans overflow-hidden">
       <div className="w-[300px] shrink-0 border-r border-slate-800/50 flex flex-col bg-[#0b0f1a] z-20">

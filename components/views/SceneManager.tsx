@@ -135,9 +135,27 @@ const SceneManager: React.FC<{ projectId?: number }> = ({ projectId }) => {
     }
   };
 
+  if (loading) {
+    return <div className="h-full flex items-center justify-center bg-[#05080f] text-slate-500">加载中...</div>;
+  }
+
+  if (!activeScene) {
+    return (
+      <div className="h-full flex items-center justify-center bg-[#05080f]">
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-800/40 flex items-center justify-center">
+            <svg className="w-8 h-8 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+          </div>
+          <p className="text-slate-500 text-sm mb-1">暂无场景数据</p>
+          <p className="text-slate-600 text-xs">AI 拆解剧本后会自动提取场景，或手动创建</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-full flex bg-[#05080f] text-slate-300 font-sans overflow-hidden">
-      
+
       {/* --- Left Sidebar: Scene List --- */}
       <div className="w-[300px] shrink-0 border-r border-slate-800/50 flex flex-col bg-[#0b0f1a] z-20">
         <div className="p-4 border-b border-slate-800/50 bg-slate-900/40">
