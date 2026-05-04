@@ -152,8 +152,8 @@ const ScriptBreakdown: React.FC<ScriptBreakdownProps> = ({ onChangeView, project
                 <div className="relative group">
                   <div className="flex items-center justify-between w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-300 cursor-pointer hover:border-slate-500 transition-colors">
                     <span className="flex items-center gap-2">
-                      通用资产提取
-                      <span className="text-[10px] text-slate-500">包含预制模版与已收藏模版</span>
+                      {project?.templateName || '通用资产提取'}
+                      <span className="text-[10px] text-slate-500">{project?.templateName ? '项目当前使用的风格模板' : '包含预制模版与已收藏模版'}</span>
                     </span>
                     <svg className="w-4 h-4 text-slate-500 group-hover:text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                   </div>

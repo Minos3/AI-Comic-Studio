@@ -1,0 +1,99 @@
+# generated: 2026-02-23
+# project: AI-Comic-Studio
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review
+#
+# IMPLEMENTATION ORDER NOTE:
+# ==========================
+# Story 7.1 (style templates) should be implemented BEFORE Epic 3 (projects),
+# because creating a project requires selecting a style template.
+# Recommended execution order:
+#   Epic 1 → Epic 2 → Story 7.1 → Epic 3 → Epic 4 → Epic 5 → Epic 6 → Story 7.2 → Story 7.3 → Epic 8
+
+generated: 2026-02-23
+project: AI-Comic-Studio
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+development_status:
+  # Epic 1: 项目脚手架与基础设施
+  epic-1: done
+  1-1-project-directory-structure-and-dev-environment: done
+  1-2-database-connection-and-base-schema: done
+  1-3-express-skeleton-and-unified-middleware: done
+  1-4-file-storage-abstraction-layer: done
+  epic-1-retrospective: optional
+
+  # Epic 2: 用户认证与权限管理
+  epic-2: done
+  2-1-user-registration-and-login: done
+  2-2-jwt-auth-middleware-and-sliding-refresh: done
+  2-3-role-guard-and-frontend-route-protection: done
+  2-4-user-management-admin-and-password-change: done
+  epic-2-retrospective: optional
+
+  # Epic 3: 项目与集数管理 (depends on Story 7.1 for template selection)
+  epic-3: backlog
+  3-1-project-crud-and-style-template-selection: backlog
+  3-2-episode-management: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: 剧本导入与 AI 分镜拆解
+  epic-4: backlog
+  4-1-script-upload-and-editing: backlog
+  4-2-ai-storyboard-breakdown-gemini-backend-proxy: backlog
+  4-3-panel-manual-adjustment-and-prompt-editing: backlog
+  epic-4-retrospective: optional
+
+  # Epic 5: 图片生成与任务管理
+  epic-5: backlog
+  5-1-task-state-machine-and-websocket-realtime-push: backlog
+  5-2-image-generation-adapters-nanobanana-jimeng: backlog
+  5-3-image-generation-task-submission-and-result-display: backlog
+  5-4-model-switch-retry-manual-upload-and-error-handling: backlog
+  epic-5-retrospective: optional
+
+  # Epic 6: 视频生成
+  epic-6: backlog
+  6-1-video-generation-adapters-seedance-sora: backlog
+  6-2-video-generation-task-submission-and-result-display: backlog
+  epic-6-retrospective: optional
+
+  # Epic 7: 后台管理与运维
+  epic-7: in-progress
+  7-1-style-template-management: done
+  7-2-model-config-management-and-default-switch: backlog
+  7-3-api-error-alerting-and-restart-recovery: backlog
+  epic-7-retrospective: optional
+
+  # Epic 8: 预览与体验优化
+  epic-8: backlog
+  8-1-episode-panel-preview: backlog
+  epic-8-retrospective: optional
