@@ -277,6 +277,34 @@ router.patch('/scenes/:sceneId', async (req, res) => {
   res.json({ success: true, data: updated });
 });
 
+// POST /api/v1/projects/:projectId/scenes - create scene
+router.post('/projects/:projectId/scenes', async (req, res) => {
+  const projectId = parseInt(req.params.projectId, 10);
+  const project = await db.select().from(projects).where(eq(projects.id, projectId)).get();
+  if (!project || project.status === 'deleted') return res.status(404).json({ success: false, error: { code: 'NOT_FOUND' } });
+  if (!checkProjectAccess(project, req.user!.userId, req.user!.role)) return res.status(403).json({ success: false, error: { code: 'FORBIDDEN' } });
+
+  const { name, description, styleKeywords } = req.body;
+  if (!name) return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Name required' } });
+  const now = new Date().toISOString();
+  const r = await db.insert(scenes).values({ projectId, name, description: description || '', styleKeywords: styleKeywords || '', createdAt: now, updatedAt: now }).returning();
+  res.status(201).json({ success: true, data: r[0] });
+});
+
+// POST /api/v1/projects/:projectId/characters - create character
+router.post('/projects/:projectId/characters', async (req, res) => {
+  const projectId = parseInt(req.params.projectId, 10);
+  const project = await db.select().from(projects).where(eq(projects.id, projectId)).get();
+  if (!project || project.status === 'deleted') return res.status(404).json({ success: false, error: { code: 'NOT_FOUND' } });
+  if (!checkProjectAccess(project, req.user!.userId, req.user!.role)) return res.status(403).json({ success: false, error: { code: 'FORBIDDEN' } });
+
+  const { name, gender, age, appearanceDescription } = req.body;
+  if (!name) return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Name required' } });
+  const now = new Date().toISOString();
+  const r = await db.insert(characters).values({ projectId, name, gender: gender || '其他', age: age || '', appearanceDescription: appearanceDescription || '', createdAt: now, updatedAt: now }).returning();
+  res.status(201).json({ success: true, data: r[0] });
+});
+
 // GET /api/v1/projects/:projectId/characters - list characters for project
 router.get('/projects/:projectId/characters', async (req, res) => {
   const projectId = parseInt(req.params.projectId, 10);
