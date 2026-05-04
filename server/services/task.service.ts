@@ -138,17 +138,34 @@ async function executeTask(taskId: number) {
     task.status = 'processing' as any;
     emitTaskEvent(task);
 
-    // Poll for result
-    const maxRetries = task.type === 'video' ? 180 : 60; // 15 min for video, 5 min for image
+    // Check if adapter returned a direct result (sync adapters like gemini-image, gpt-image)
+    const isSyncResult = remoteTaskId.startsWith('http') || remoteTaskId.startsWith('data:');
+
+    // Poll for result (async adapters) or use direct result (sync adapters)
+    const maxRetries = task.type === 'video' ? 180 : 60;
     const pollInterval = task.type === 'video' ? 10000 : 5000;
-    const result = await pollForResult(adapter, remoteTaskId, model.apiUrl || '', model.apiKey || '', maxRetries, pollInterval);
+    const result = isSyncResult
+      ? remoteTaskId
+      : await pollForResult(adapter, remoteTaskId, model.apiUrl || '', model.apiKey || '', maxRetries, pollInterval);
 
     if (result) {
       // Download result to local storage
-      const ext = task.type === 'video' || result.endsWith('.mp4') ? 'mp4' : 'png';
+      const ext = task.type === 'video' || result.includes('video') ? 'mp4' : 'png';
       const storagePath = `projects/episodes/panels/${task.panelId}/tasks/${taskId}.${ext}`;
-      const response = await fetch(result);
-      const buffer = Buffer.from(await response.arrayBuffer());
+
+      let buffer: Buffer;
+      if (result.startsWith('data:')) {
+        // Handle data URL (base64 encoded image)
+        const b64Index = result.indexOf('base64,');
+        if (b64Index >= 0) {
+          buffer = Buffer.from(result.substring(b64Index + 7), 'base64');
+        } else {
+          throw new Error('Unsupported data URL format');
+        }
+      } else {
+        const response = await fetch(result);
+        buffer = Buffer.from(await response.arrayBuffer());
+      }
       const localPath = await storage.save(storagePath, buffer);
 
       await updateTaskStatus(taskId, 'completed', { resultUrl: `/api/v1/files/${localPath}` });
