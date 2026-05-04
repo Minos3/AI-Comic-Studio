@@ -83,12 +83,19 @@ router.post(
 
     if (req.file) {
       originalFilename = req.file.originalname;
+      // Fix Chinese filename encoding: browser may send raw UTF-8 bytes that multer reads as Latin-1
+      try {
+        const buf = Buffer.from(originalFilename, 'latin1');
+        const test = buf.toString('utf8');
+        // Only apply if the re-encoding produces valid-looking text (no replacement chars)
+        if (!test.includes('�')) originalFilename = test;
+      } catch { /* keep original */ }
+
       const ext = path.extname(originalFilename).toLowerCase();
       if (ext === '.docx') {
         const result = await mammoth.extractRawText({ buffer: req.file.buffer });
         content = result.value;
       } else if (ext === '.doc') {
-        // .doc (binary) is not fully supported; attempt utf-8, warn if binary
         content = req.file.buffer.toString('utf-8');
         if (content.includes('�')) {
           return res.status(400).json({ success: false, error: { code: 'UNSUPPORTED_FORMAT', message: '.doc 格式暂不支持，请另存为 .docx 或 .txt 后上传' } });
