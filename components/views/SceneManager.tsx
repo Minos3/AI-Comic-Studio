@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../../src/lib/api';
 
 interface SceneVariation {
@@ -75,7 +75,7 @@ const SceneManager: React.FC<{ projectId?: number }> = ({ projectId }) => {
           id: String(s.id),
           name: s.name,
           description: s.description || '',
-          mainImageUrl: s.mainImageUrl || `https://picsum.photos/seed/${s.id}/800/450`,
+          mainImageUrl: s.mainImageUrl || '',
           variations: [],
         }));
         setScenes(mapped);
@@ -137,6 +137,37 @@ const SceneManager: React.FC<{ projectId?: number }> = ({ projectId }) => {
       return s;
     }));
     setEditingVariation(null);
+  };
+
+  const sceneImageRef = useRef<HTMLInputElement>(null);
+
+  const handleUploadSceneImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !activeScene) return;
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        await api.patch(`/scenes/${activeScene.id}`, { mainImageUrl: reader.result as string });
+        updateActiveScene({ mainImageUrl: reader.result as string });
+      } catch { alert('上传失败'); }
+    };
+    reader.readAsDataURL(file);
+    if (sceneImageRef.current) sceneImageRef.current.value = '';
+  };
+
+  const handleGenerateSceneImage = async () => {
+    if (!projectId || !activeScene) return;
+    const prompt = prompt('输入场景生成提示词（英文）:', activeScene.description?.substring(0, 100) || activeScene.name);
+    if (!prompt) return;
+    setIsGenerating(true);
+    try {
+      await api.post('/tasks', { panelId: 0, type: 'image', modelId: 1, prompt: `Scene: ${prompt}, wide angle, detailed environment, professional illustration` });
+      alert('任务已提交！请到「片段」页面查看生成结果。');
+    } catch (err: any) {
+      alert('生成失败：' + (err.response?.data?.error?.message || '请先配置 AI 模型'));
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleDeleteScene = () => {
@@ -214,8 +245,8 @@ const SceneManager: React.FC<{ projectId?: number }> = ({ projectId }) => {
                   : 'bg-slate-900/40 border-transparent hover:bg-slate-800 hover:border-slate-700'
               }`}
             >
-              <div className="w-16 h-10 shrink-0 rounded-lg overflow-hidden border border-slate-800 bg-slate-950 shadow-inner">
-                <img src={scene.mainImageUrl} alt={scene.name} className="w-full h-full object-cover" />
+              <div className="w-16 h-10 shrink-0 rounded-lg overflow-hidden border border-slate-800 bg-slate-950 shadow-inner flex items-center justify-center">
+                {scene.mainImageUrl ? <img src={scene.mainImageUrl} alt={scene.name} className="w-full h-full object-cover" /> : <svg className="w-4 h-4 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
               </div>
               <div className="flex-1 min-w-0">
                 <span className={`text-sm font-bold truncate block ${selectedId === scene.id ? 'text-white' : 'text-slate-300'}`}>
@@ -263,20 +294,26 @@ const SceneManager: React.FC<{ projectId?: number }> = ({ projectId }) => {
               </div>
 
               <div className="space-y-4 pt-4">
-                <div className="aspect-video rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 shadow-2xl group relative">
-                  <img src={activeScene.mainImageUrl} alt={activeScene.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                <input ref={sceneImageRef} type="file" accept="image/*" onChange={handleUploadSceneImage} className="hidden" />
+                <div className="aspect-video rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 shadow-2xl group relative flex items-center justify-center">
+                  {activeScene.mainImageUrl ? (
+                    <img src={activeScene.mainImageUrl} alt={activeScene.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                  ) : (
+                    <svg className="w-16 h-16 text-slate-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
-                    <button className="py-2 bg-white/10 backdrop-blur-md rounded-lg text-[10px] font-bold hover:bg-white/20 transition-all border border-white/5">手动更换主图</button>
+                    <button onClick={() => sceneImageRef.current?.click()} className="py-2 bg-white/10 backdrop-blur-md rounded-lg text-[10px] font-bold hover:bg-white/20 transition-all border border-white/5">上传场景图</button>
                   </div>
                 </div>
-                
+
                 <div className="flex flex-col gap-2">
                    <div className="grid grid-cols-2 gap-2">
-                     <button className="text-[11px] text-white bg-primary px-3 py-2.5 rounded-xl font-bold transition-all hover:bg-indigo-600 shadow-lg shadow-primary/10 flex items-center justify-center gap-1.5">
-                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                       手动生成
+                     <button onClick={handleGenerateSceneImage} disabled={isGenerating}
+                       className="text-[11px] text-white bg-primary px-3 py-2.5 rounded-xl font-bold transition-all hover:bg-indigo-600 shadow-lg shadow-primary/10 flex items-center justify-center gap-1.5 disabled:opacity-50">
+                       {isGenerating ? '提交中...' : 'AI 生成'}
                      </button>
-                     <button className="text-[11px] text-slate-300 border border-slate-800 bg-slate-900 px-3 py-2.5 rounded-xl hover:text-white hover:bg-slate-800 transition-all font-bold">手动上传</button>
+                     <button onClick={() => sceneImageRef.current?.click()}
+                       className="text-[11px] text-slate-300 border border-slate-800 bg-slate-900 px-3 py-2.5 rounded-xl hover:text-white hover:bg-slate-800 transition-all font-bold">上传图片</button>
                    </div>
                    <button 
                      onClick={handleDeleteScene}

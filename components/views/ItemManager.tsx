@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../../src/lib/api';
 
 interface Item {
@@ -17,12 +17,41 @@ const ItemManager: React.FC<{ projectId?: number }> = ({ projectId }) => {
   const [desc, setDesc] = useState('');
   const [imgUrl, setImgUrl] = useState('');
 
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploadingFor, setUploadingFor] = useState<number | null>(null);
+
   const load = async () => {
     if (!projectId) { setLoading(false); return; }
     try { const r = await api.get(`/projects/${projectId}/items`); if (r.data.success) setItems(r.data.data); } catch {}
     setLoading(false);
   };
   useEffect(() => { load(); }, [projectId]);
+
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !uploadingFor) return;
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        await api.patch(`/items/${uploadingFor}`, { imageUrl: reader.result as string });
+        load();
+      } catch { alert('上传失败'); }
+      setUploadingFor(null);
+    };
+    reader.readAsDataURL(file);
+    if (fileRef.current) fileRef.current.value = '';
+  };
+
+  const handleGenerate = async (item: Item) => {
+    const prompt = prompt('输入物品生成提示词（英文）:', item.name + (item.description ? ', ' + item.description.substring(0, 80) : ''));
+    if (!prompt || !projectId) return;
+    try {
+      await api.post('/tasks', { panelId: 0, type: 'image', modelId: 1, prompt: `Item: ${prompt}, product shot, white background, detailed` });
+      alert('任务已提交！请在「片段」页面查看生成结果。');
+    } catch (err: any) {
+      alert('生成失败：' + (err.response?.data?.error?.message || '请先配置 AI 模型'));
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,6 +84,7 @@ const ItemManager: React.FC<{ projectId?: number }> = ({ projectId }) => {
         </button>
       </div>
 
+      <input ref={fileRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
       <div className="flex-1 overflow-y-auto p-6">
         {loading ? (
           <div className="text-center py-12 text-slate-600">加载中...</div>
@@ -81,7 +111,11 @@ const ItemManager: React.FC<{ projectId?: number }> = ({ projectId }) => {
                     <button onClick={() => openEdit(item)} className="text-slate-500 hover:text-white p-1"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
                   </div>
                   <p className="text-[10px] text-slate-500 line-clamp-2">{item.description || '暂无描述'}</p>
-                  <button onClick={() => handleDelete(item.id)} className="mt-auto text-[10px] text-red-400 hover:text-red-300 self-start">删除</button>
+                  <div className="flex gap-2 mt-auto">
+                    <button onClick={() => handleGenerate(item)} className="text-[9px] text-primary hover:text-indigo-400 border border-primary/20 px-1.5 py-0.5 rounded">AI生成</button>
+                    <button onClick={() => { setUploadingFor(item.id); fileRef.current?.click(); }} className="text-[9px] text-slate-400 hover:text-white border border-slate-700 px-1.5 py-0.5 rounded">上传</button>
+                    <button onClick={() => handleDelete(item.id)} className="text-[9px] text-red-400 hover:text-red-300 ml-auto">删除</button>
+                  </div>
                 </div>
               </div>
             ))}

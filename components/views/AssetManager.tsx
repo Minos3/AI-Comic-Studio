@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AppView } from '../../types.ts';
 import { api } from '../../src/lib/api';
 
@@ -93,7 +93,7 @@ const AssetManager: React.FC<{ type: AppView; projectId?: number }> = ({ type, p
           gender: c.gender || '其他',
           age: c.age || '',
           description: c.appearanceDescription || '',
-          portraitUrl: c.portraitUrl || `https://picsum.photos/seed/${c.id}/400/500`,
+          portraitUrl: c.portraitUrl || '',
           shortBio: c.appearanceDescription?.substring(0, 30) || '',
           appearances: [],
         }));
@@ -112,20 +112,58 @@ const AssetManager: React.FC<{ type: AppView; projectId?: number }> = ({ type, p
     setCharacters(prev => prev.map(c => c.id === selectedId ? { ...c, ...updates } : c));
   };
 
-  const handleGenerateAppearance = (appId: string) => {
+  const portraitInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUploadPortrait = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !projectId || !activeChar) return;
+    const form = new FormData();
+    form.append('file', file);
+    try {
+      const res = await api.post(`/projects/${projectId}/characters/upload-portrait/${activeChar.id}`, form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      if (res.data.success) {
+        updateActiveChar({ portraitUrl: res.data.data.url as any });
+      }
+    } catch (err: any) {
+      // Fallback: convert to data URL and update via PATCH
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          await api.patch(`/characters/${activeChar.id}`, { portraitUrl: reader.result as string });
+          updateActiveChar({ portraitUrl: reader.result as any });
+        } catch { alert('上传失败'); }
+      };
+      reader.readAsDataURL(file);
+    } finally {
+      if (portraitInputRef.current) portraitInputRef.current.value = '';
+    }
+  };
+
+  const handleGeneratePortrait = async () => {
+    if (!projectId || !activeChar) return;
+    const prompt = prompt('输入角色画像生成提示词（英文）:', `${activeChar.name}, ${activeChar.gender}, ${activeChar.age} years old, ${activeChar.description?.substring(0, 80)}`);
+    if (!prompt) return;
     setIsGenerating(true);
-    setTimeout(() => {
-      setCharacters(prev => prev.map(c => {
-        if (c.id === selectedId) {
-          return {
-            ...c,
-            appearances: c.appearances.map(a => a.id === appId ? { ...a, status: 'generated', imageUrl: `https://picsum.photos/seed/${appId}_gen/400/400` } : a)
-          };
-        }
-        return c;
-      }));
+    try {
+      const res = await api.post('/tasks', {
+        panelId: 0, type: 'image', modelId: 1,
+        prompt: `Character portrait: ${prompt}, solo, portrait, detailed face, professional illustration`,
+      });
+      if (res.data.success) {
+        alert('任务已提交！请到「片段」页面查看生成结果。生成后可在素材区关联到此角色。');
+      }
+    } catch (err: any) {
+      alert('生成失败：' + (err.response?.data?.error?.message || '请先配置 AI 模型'));
+    } finally {
       setIsGenerating(false);
-    }, 2000);
+    }
+  };
+
+  const handleGenerateAppearance = (appId: string) => {
+    // Legacy: generates appearance images
+    handleGeneratePortrait();
   };
 
   const handleDeleteAppearance = (appId: string) => {
@@ -261,8 +299,8 @@ const AssetManager: React.FC<{ type: AppView; projectId?: number }> = ({ type, p
                   : 'bg-slate-900/40 border-transparent hover:bg-slate-800 hover:border-slate-700'
               }`}
             >
-              <div className="w-12 h-12 shrink-0 rounded-full overflow-hidden border-2 border-slate-800 bg-slate-950 shadow-inner">
-                <img src={char.portraitUrl} alt={char.name} className="w-full h-full object-cover" />
+              <div className="w-12 h-12 shrink-0 rounded-full overflow-hidden border-2 border-slate-800 bg-slate-950 shadow-inner flex items-center justify-center">
+                {char.portraitUrl ? <img src={char.portraitUrl} alt={char.name} className="w-full h-full object-cover" /> : <svg className="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-0.5">
@@ -324,21 +362,25 @@ const AssetManager: React.FC<{ type: AppView; projectId?: number }> = ({ type, p
                 />
               </div>
               <div className="space-y-4 pt-4">
-                <div className="aspect-[3/4] rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 shadow-2xl group relative">
-                  <img src={activeChar.portraitUrl} alt={activeChar.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                <input ref={portraitInputRef} type="file" accept="image/*" onChange={handleUploadPortrait} className="hidden" />
+                <div className="aspect-[3/4] rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 shadow-2xl group relative flex items-center justify-center">
+                  {activeChar.portraitUrl ? (
+                    <img src={activeChar.portraitUrl} alt={activeChar.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                  ) : (
+                    <svg className="w-16 h-16 text-slate-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
-                    <div className="flex gap-2">
-                       <button className="flex-1 py-2 bg-white/10 backdrop-blur-md rounded-lg text-[10px] font-bold hover:bg-white/20 transition-all border border-white/5">手动上传</button>
-                    </div>
+                    <button onClick={() => portraitInputRef.current?.click()} className="py-2 bg-white/10 backdrop-blur-md rounded-lg text-[10px] font-bold hover:bg-white/20 transition-all border border-white/5">上传头像</button>
                   </div>
                 </div>
                 <div className="flex flex-col gap-2">
                    <div className="grid grid-cols-2 gap-2">
-                     <button className="text-[11px] text-white bg-primary px-3 py-2.5 rounded-xl font-bold transition-all hover:bg-indigo-600 shadow-lg shadow-primary/10 flex items-center justify-center gap-1.5">
-                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                       手动生成
+                     <button onClick={handleGeneratePortrait} disabled={isGenerating}
+                       className="text-[11px] text-white bg-primary px-3 py-2.5 rounded-xl font-bold transition-all hover:bg-indigo-600 shadow-lg shadow-primary/10 flex items-center justify-center gap-1.5 disabled:opacity-50">
+                       {isGenerating ? '提交中...' : 'AI 生成'}
                      </button>
-                     <button className="text-[11px] text-slate-300 border border-slate-800 bg-slate-900 px-3 py-2.5 rounded-xl hover:text-white hover:bg-slate-800 transition-all font-bold">手动上传</button>
+                     <button onClick={() => portraitInputRef.current?.click()}
+                       className="text-[11px] text-slate-300 border border-slate-800 bg-slate-900 px-3 py-2.5 rounded-xl hover:text-white hover:bg-slate-800 transition-all font-bold">上传图片</button>
                    </div>
                    <button 
                      onClick={handleDeleteCharacter}
