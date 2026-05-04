@@ -38,6 +38,28 @@ router.get('/', async (req, res) => {
   });
 });
 
+router.get('/:projectId', async (req, res) => {
+  const projectId = parseInt(req.params.projectId, 10);
+  const row = await db
+    .select({
+      id: projects.id, name: projects.name, templateId: projects.templateId,
+      templateName: styleTemplates.name, remark: projects.remark, status: projects.status,
+      createdAt: projects.createdAt, createdBy: projects.createdBy, episodeCount: count(episodes.id),
+    })
+    .from(projects)
+    .leftJoin(styleTemplates, eq(projects.templateId, styleTemplates.id))
+    .leftJoin(episodes, eq(episodes.projectId, projects.id))
+    .where(and(eq(projects.id, projectId), eq(projects.status, 'active')))
+    .groupBy(projects.id, styleTemplates.name)
+    .get();
+
+  if (!row) return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Project not found' } });
+  if (row.createdBy !== req.user!.userId && req.user!.role !== 'admin') {
+    return res.status(403).json({ success: false, error: { code: 'FORBIDDEN' } });
+  }
+  res.json({ success: true, data: { ...row, templateName: row.templateName || '未选择模板', remark: row.remark || '', scripts: [] } });
+});
+
 router.post('/', async (req, res) => {
   const { name, templateId, remark } = req.body;
   if (!name || !templateId) {
