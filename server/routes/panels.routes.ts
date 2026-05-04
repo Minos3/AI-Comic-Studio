@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { and, asc, eq } from 'drizzle-orm';
 import { db } from '../db/index.js';
-import { episodes, panels, projects, characters, scenes } from '../db/schema.js';
+import { episodes, panels, projects, characters, scenes, tasks } from '../db/schema.js';
 import { authMiddleware } from '../middleware/auth.middleware.js';
 
 const router = Router();
@@ -317,6 +317,84 @@ router.get('/projects/:projectId/scenes', async (req, res) => {
     .orderBy(asc(scenes.createdAt));
 
   res.json({ success: true, data: rows });
+});
+
+// GET /api/v1/projects/:projectId/episodes/:episodeId/preview - episode panel preview
+router.get('/projects/:projectId/episodes/:episodeId/preview', async (req, res) => {
+  const projectId = parseInt(req.params.projectId, 10);
+  const episodeId = parseInt(req.params.episodeId, 10);
+
+  const project = await db.select().from(projects).where(eq(projects.id, projectId)).get();
+  if (!project || project.status === 'deleted') {
+    return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Project not found' } });
+  }
+  if (!checkProjectAccess(project, req.user!.userId, req.user!.role)) {
+    return res.status(403).json({ success: false, error: { code: 'FORBIDDEN', message: 'Insufficient permissions' } });
+  }
+
+  const episode = await db
+    .select()
+    .from(episodes)
+    .where(and(eq(episodes.id, episodeId), eq(episodes.projectId, projectId)))
+    .get();
+
+  if (!episode) {
+    return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Episode not found' } });
+  }
+
+  // Get all panels ordered by panel number
+  const panelRows = await db
+    .select()
+    .from(panels)
+    .where(eq(panels.episodeId, episodeId))
+    .orderBy(asc(panels.panelNumber));
+
+  // For each panel, find latest completed image and video tasks
+  const panelsWithAssets = await Promise.all(
+    panelRows.map(async (panel) => {
+      const panelTasks = await db
+        .select()
+        .from(tasks)
+        .where(eq(tasks.panelId, panel.id))
+        .all();
+
+      const completedImageTask = panelTasks
+        .filter((t) => t.type === 'image' && t.status === 'completed' && t.resultUrl)
+        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0];
+
+      const completedVideoTask = panelTasks
+        .filter((t) => t.type === 'video' && t.status === 'completed' && t.resultUrl)
+        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0];
+
+      return {
+        id: panel.id,
+        panelNumber: panel.panelNumber,
+        description: panel.description,
+        dialogue: panel.dialogue,
+        status: panel.status,
+        imageUrl: completedImageTask?.resultUrl || null,
+        videoUrl: completedVideoTask?.resultUrl || null,
+      };
+    }),
+  );
+
+  res.json({
+    success: true,
+    data: {
+      episode: {
+        id: episode.id,
+        title: episode.title,
+        sortOrder: episode.sortOrder,
+      },
+      project: {
+        id: project.id,
+        name: project.name,
+      },
+      panels: panelsWithAssets,
+      totalPanels: panelsWithAssets.length,
+      completedPanels: panelsWithAssets.filter((p) => p.status === 'completed').length,
+    },
+  });
 });
 
 export default router;

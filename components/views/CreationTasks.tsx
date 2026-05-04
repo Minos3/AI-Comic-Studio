@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import AssetSelectorModal from '../AssetSelectorModal';
+import EpisodePreview from './EpisodePreview';
 import { Asset } from '../../types';
 
 type EpisodeStatus = 'broken' | 'unbroken' | 'manual';
@@ -105,6 +106,7 @@ const CreationTasks: React.FC = () => {
   const [genMode, setGenMode] = useState<'ref_image' | 'text_image'>('ref_image');
   const [isAssetModalOpen, setIsAssetModalOpen] = useState(false);
   const [selectedAssets, setSelectedAssets] = useState<Asset[]>([]);
+  const [showPreview, setShowPreview] = useState(false);
   
   const currentEpisode = episodes.find(e => e.id === selectedEpisodeId) || episodes[0];
   const shots = currentEpisode.shots;
@@ -472,6 +474,10 @@ const CreationTasks: React.FC = () => {
               <div className="flex-1 flex flex-col bg-black relative">
                 <div className="h-12 bg-[#0b0f1a] border-b border-slate-800/50 flex items-center justify-between px-6 z-20">
                   <div className="flex items-center gap-6">
+                     <button onClick={() => setShowPreview(true)} className="text-xs text-primary hover:text-indigo-400 font-bold flex items-center gap-1">
+                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                       预览
+                     </button>
                      <button className="text-xs text-slate-400 hover:text-white">画质增强</button>
                      <button className="text-xs text-slate-400 hover:text-white">一键高清</button>
                   </div>
@@ -569,7 +575,16 @@ const CreationTasks: React.FC = () => {
         )}
       </div>
 
-      <AssetSelectorModal 
+      {showPreview && (
+        <EpisodePreview
+          projectId={1}
+          episodeId={parseInt(currentEpisode.id.replace(/\D/g, '')) || 1}
+          episodeTitle={currentEpisode.title}
+          onClose={() => setShowPreview(false)}
+        />
+      )}
+
+      <AssetSelectorModal
         isOpen={isAssetModalOpen}
         onClose={() => setIsAssetModalOpen(false)}
         onSelect={(assets) => setSelectedAssets(assets)}

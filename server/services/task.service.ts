@@ -1,7 +1,7 @@
 import { and, asc, eq } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { tasks, panels, projects, episodes, aiModels, styleTemplates } from '../db/schema.js';
-import { adapterRegistry } from './adapters/adapter.registry.js';
+import { adapterRegistry } from './adapters/registry.js';
 import { storage } from '../storage/local.storage.js';
 
 export type TaskStatus = 'created' | 'submitted' | 'processing' | 'completed' | 'failed';
