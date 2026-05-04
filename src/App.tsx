@@ -12,8 +12,10 @@ import CreatureManager from '@/components/views/CreatureManager';
 import CreationTasks from '@/components/views/CreationTasks';
 import LoginPage from './features/auth/LoginPage';
 import AppLayout from './components/layout/AppLayout';
+import AdminLayout from './components/layout/AdminLayout';
 import UserManagementPage from './features/admin/UserManagementPage';
 import TemplateManagementPage from './features/admin/TemplateManagementPage';
+import ModelManagementPage from './features/admin/ModelManagementPage';
 import { useAuthStore } from './features/auth/useAuthStore';
 
 // Legacy workspace wrapping existing views with sidebar
@@ -92,10 +94,14 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/login" element={token ? <Navigate to="/" replace /> : <LoginPage />} />
 
-        {/* Admin routes (must be before catch-all) */}
+        {/* Admin routes with shared sidebar layout */}
         <Route element={<AppLayout requireAdmin />}>
-          <Route path="/admin/users" element={<UserManagementPage />} />
-          <Route path="/admin/templates" element={<TemplateManagementPage />} />
+          <Route element={<AdminLayout />}>
+            <Route path="/admin/users" element={<UserManagementPage />} />
+            <Route path="/admin/templates" element={<TemplateManagementPage />} />
+            <Route path="/admin/models" element={<ModelManagementPage />} />
+            <Route path="/admin" element={<UserManagementPage />} />
+          </Route>
         </Route>
 
         {/* Protected routes */}

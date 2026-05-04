@@ -14,32 +14,36 @@ export enum AppView {
   ASSETS_OFFICIAL = 'ASSETS_OFFICIAL',
 }
 
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatar: string;
-}
-
-export interface ProjectPreferences {
-  imageModel: string;
-  videoModel: string;
-  textModel: string;
-  artStyle: string;
-  videoRatio: string;
-}
+// ---- API-compatible types ----
 
 export interface Project {
-  id: string;
+  id: number;
   name: string;
-  scripts: string[];
+  templateId: number | null;
+  templateName: string;
   remark: string;
-  description?: string;
-  coverUrl?: string;
-  createDate: string;
-  status: 'Draft' | 'In Progress' | 'Completed';
-  preferences?: ProjectPreferences;
+  createdAt: string;
+  status: 'active' | 'archived' | 'deleted';
+  episodeCount: number;
+  scripts: string[];
 }
+
+export interface EpisodeSummary {
+  id: number;
+  projectId: number;
+  title: string;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StyleTemplateOption {
+  id: number;
+  name: string;
+  description: string;
+}
+
+// ---- Frontend types ----
 
 export interface ScriptProject {
   id: string;

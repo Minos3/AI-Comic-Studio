@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Table, Button, Modal, Form, Input, Select, Tag, Space, Popconfirm, message } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 import { api } from '../../lib/api';
 
 interface User {
@@ -11,103 +13,138 @@ interface User {
 
 const UserManagementPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
-  const [showCreate, setShowCreate] = useState(false);
-  const [newUsername, setNewUsername] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [newRole, setNewRole] = useState('user');
-  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [form] = Form.useForm();
 
   const loadUsers = async () => {
+    setLoading(true);
     try {
       const res = await api.get('/admin/users');
       if (res.data.success) setUsers(res.data.data);
-    } catch { /* handled by interceptor */ }
+    } catch { message.error('加载用户列表失败'); }
+    finally { setLoading(false); }
   };
 
   useEffect(() => { loadUsers(); }, []);
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+  const handleCreate = () => {
+    setEditingUser(null);
+    form.resetFields();
+    form.setFieldsValue({ role: 'user' });
+    setModalOpen(true);
+  };
+
+  const handleEdit = (user: User) => {
+    setEditingUser(user);
+    form.setFieldsValue({ username: user.username, role: user.role });
+    setModalOpen(true);
+  };
+
+  const handleSubmit = async () => {
     try {
-      await api.post('/admin/users', { username: newUsername, password: newPassword, role: newRole });
-      setShowCreate(false);
-      setNewUsername('');
-      setNewPassword('');
-      setNewRole('user');
+      const values = await form.validateFields();
+      if (editingUser) {
+        await api.patch(`/admin/users/${editingUser.id}`, values);
+        message.success('用户已更新');
+      } else {
+        await api.post('/admin/users', values);
+        message.success('用户已创建');
+      }
+      setModalOpen(false);
       loadUsers();
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed');
+      if (err.response) message.error(err.response.data?.error?.message || '操作失败');
     }
   };
 
   const toggleStatus = async (user: User) => {
     const newStatus = user.status === 'active' ? 'disabled' : 'active';
     await api.patch(`/admin/users/${user.id}`, { status: newStatus });
+    message.success(`用户已${newStatus === 'active' ? '启用' : '禁用'}`);
     loadUsers();
   };
 
   const toggleRole = async (user: User) => {
     const newRole = user.role === 'admin' ? 'user' : 'admin';
     await api.patch(`/admin/users/${user.id}`, { role: newRole });
+    message.success(`角色已切换为 ${newRole}`);
     loadUsers();
   };
 
+  const columns = [
+    { title: 'ID', dataIndex: 'id', width: 60 },
+    { title: '用户名', dataIndex: 'username' },
+    {
+      title: '角色', dataIndex: 'role', width: 100,
+      render: (role: string) => (
+        <Tag color={role === 'admin' ? 'purple' : 'default'}>{role === 'admin' ? '管理员' : '用户'}</Tag>
+      ),
+    },
+    {
+      title: '状态', dataIndex: 'status', width: 100,
+      render: (status: string) => (
+        <Tag color={status === 'active' ? 'green' : 'red'}>{status === 'active' ? '正常' : '已禁用'}</Tag>
+      ),
+    },
+    {
+      title: '创建时间', dataIndex: 'createdAt', width: 180,
+      render: (v: string) => v?.replace('T', ' ').substring(0, 19),
+    },
+    {
+      title: '操作', width: 260,
+      render: (_: unknown, record: User) => (
+        <Space>
+          <Button size="small" onClick={() => handleEdit(record)}>编辑</Button>
+          <Button size="small" onClick={() => toggleRole(record)}>
+            {record.role === 'admin' ? '降为用户' : '升为管理'}
+          </Button>
+          <Popconfirm
+            title={record.status === 'active' ? '确定禁用该用户？' : '确定启用该用户？'}
+            onConfirm={() => toggleStatus(record)}
+          >
+            <Button size="small" danger={record.status === 'active'}>
+              {record.status === 'active' ? '禁用' : '启用'}
+            </Button>
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
+
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-white">用户管理</h1>
-        <button onClick={() => setShowCreate(!showCreate)} className="px-4 py-2 bg-primary hover:bg-indigo-600 text-white rounded-lg text-sm transition-colors">
-          {showCreate ? '取消' : '创建用户'}
-        </button>
+    <div className="bg-white rounded-lg p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-bold">用户管理</h2>
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>创建用户</Button>
       </div>
+      <Table columns={columns} dataSource={users} rowKey="id" loading={loading} size="middle" />
 
-      {showCreate && (
-        <form onSubmit={handleCreate} className="bg-dark-800 rounded-lg p-4 mb-6 space-y-3">
-          <div className="grid grid-cols-3 gap-3">
-            <input value={newUsername} onChange={(e) => setNewUsername(e.target.value)} placeholder="用户名" required className="px-3 py-2 bg-dark-700 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:border-primary" />
-            <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="密码" required className="px-3 py-2 bg-dark-700 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:border-primary" />
-            <select value={newRole} onChange={(e) => setNewRole(e.target.value)} className="px-3 py-2 bg-dark-700 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:border-primary">
-              <option value="user">user</option>
-              <option value="admin">admin</option>
-            </select>
-          </div>
-          {error && <p className="text-red-400 text-sm">{error}</p>}
-          <button type="submit" className="px-4 py-2 bg-primary hover:bg-indigo-600 text-white rounded-lg text-sm transition-colors">确认创建</button>
-        </form>
-      )}
-
-      <div className="bg-dark-800 rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-slate-700 text-slate-400">
-              <th className="text-left p-3">ID</th>
-              <th className="text-left p-3">用户名</th>
-              <th className="text-left p-3">角色</th>
-              <th className="text-left p-3">状态</th>
-              <th className="text-left p-3">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((u) => (
-              <tr key={u.id} className="border-b border-slate-700/50 text-slate-300">
-                <td className="p-3">{u.id}</td>
-                <td className="p-3">{u.username}</td>
-                <td className="p-3">
-                  <span className={`px-2 py-0.5 rounded text-xs ${u.role === 'admin' ? 'bg-purple-500/20 text-purple-300' : 'bg-slate-500/20 text-slate-300'}`}>{u.role}</span>
-                </td>
-                <td className="p-3">
-                  <span className={`px-2 py-0.5 rounded text-xs ${u.status === 'active' ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>{u.status}</span>
-                </td>
-                <td className="p-3 space-x-2">
-                  <button onClick={() => toggleRole(u)} className="text-xs text-primary hover:underline">切换角色</button>
-                  <button onClick={() => toggleStatus(u)} className="text-xs text-yellow-400 hover:underline">{u.status === 'active' ? '禁用' : '启用'}</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <Modal
+        title={editingUser ? '编辑用户' : '创建用户'}
+        open={modalOpen}
+        onOk={handleSubmit}
+        onCancel={() => setModalOpen(false)}
+        destroyOnClose
+      >
+        <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item name="username" label="用户名" rules={[{ required: true, message: '请输入用户名' }]}>
+            <Input placeholder="用户名" disabled={!!editingUser} />
+          </Form.Item>
+          {!editingUser && (
+            <Form.Item name="password" label="密码" rules={[{ required: true, message: '请输入密码' }]}>
+              <Input.Password placeholder="初始密码" />
+            </Form.Item>
+          )}
+          <Form.Item name="role" label="角色" rules={[{ required: true }]}>
+            <Select options={[
+              { value: 'user', label: '用户 (user)' },
+              { value: 'admin', label: '管理员 (admin)' },
+            ]} />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

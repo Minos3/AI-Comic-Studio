@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Table, Button, Modal, Form, Input, Tag, Space, Popconfirm, message } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 import { api } from '../../lib/api';
 
 interface Template {
@@ -11,184 +13,130 @@ interface Template {
   createdAt: string;
 }
 
-const emptyTemplate = { name: '', description: '', breakdownPrompt: '', imagePrompt: '', videoPrompt: '' };
+const { TextArea } = Input;
 
 const TemplateManagementPage: React.FC = () => {
   const [templates, setTemplates] = useState<Template[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [form, setForm] = useState(emptyTemplate);
-  const [showCreate, setShowCreate] = useState(false);
-  const [error, setError] = useState('');
+  const [form] = Form.useForm();
 
   const loadTemplates = async () => {
+    setLoading(true);
     try {
       const res = await api.get('/templates');
       if (res.data.success) setTemplates(res.data.data);
-    } catch { /* handled by interceptor */ }
+    } catch { message.error('加载模板列表失败'); }
+    finally { setLoading(false); }
   };
 
   useEffect(() => { loadTemplates(); }, []);
 
-  const resetForm = () => {
-    setForm(emptyTemplate);
+  const handleCreate = () => {
     setEditingId(null);
-    setShowCreate(false);
-    setError('');
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    try {
-      if (editingId) {
-        await api.patch(`/templates/${editingId}`, form);
-      } else {
-        await api.post('/templates', form);
-      }
-      resetForm();
-      loadTemplates();
-    } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed');
-    }
+    form.resetFields();
+    setModalOpen(true);
   };
 
   const handleEdit = (t: Template) => {
     setEditingId(t.id);
-    setForm({ name: t.name, description: t.description, breakdownPrompt: t.breakdownPrompt, imagePrompt: t.imagePrompt, videoPrompt: t.videoPrompt });
-    setShowCreate(true);
+    form.setFieldsValue(t);
+    setModalOpen(true);
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('确定要删除这个模版吗？')) return;
+  const handleSubmit = async () => {
     try {
-      await api.delete(`/templates/${id}`);
+      const values = await form.validateFields();
+      if (editingId) {
+        await api.patch(`/templates/${editingId}`, values);
+        message.success('模板已更新');
+      } else {
+        await api.post('/templates', values);
+        message.success('模板已创建');
+      }
+      setModalOpen(false);
       loadTemplates();
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to delete');
+      if (err.response) message.error(err.response.data?.error?.message || '操作失败');
     }
   };
 
+  const handleDelete = async (id: number) => {
+    await api.delete(`/templates/${id}`);
+    message.success('模板已删除');
+    loadTemplates();
+  };
+
+  const columns = [
+    { title: 'ID', dataIndex: 'id', width: 60 },
+    { title: '名称', dataIndex: 'name', ellipsis: true },
+    {
+      title: '描述', dataIndex: 'description', ellipsis: true,
+      render: (v: string) => v || '-',
+    },
+    {
+      title: '分镜提示词', dataIndex: 'breakdownPrompt', width: 100,
+      render: (v: string) => <Tag color={v ? 'blue' : 'default'}>{v ? '已配置' : '未配置'}</Tag>,
+    },
+    {
+      title: '图片提示词', dataIndex: 'imagePrompt', width: 100,
+      render: (v: string) => <Tag color={v ? 'purple' : 'default'}>{v ? '已配置' : '未配置'}</Tag>,
+    },
+    {
+      title: '视频提示词', dataIndex: 'videoPrompt', width: 100,
+      render: (v: string) => <Tag color={v ? 'green' : 'default'}>{v ? '已配置' : '未配置'}</Tag>,
+    },
+    {
+      title: '操作', width: 160,
+      render: (_: unknown, record: Template) => (
+        <Space>
+          <Button size="small" onClick={() => handleEdit(record)}>编辑</Button>
+          <Popconfirm title="确定删除该模板？" onConfirm={() => handleDelete(record.id)}>
+            <Button size="small" danger>删除</Button>
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
+
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-white">样式模版管理</h1>
-        <button
-          onClick={() => { resetForm(); setShowCreate(!showCreate); }}
-          className="px-4 py-2 bg-primary hover:bg-indigo-600 text-white rounded-lg text-sm transition-colors"
-        >
-          {showCreate ? '取消' : '新建模版'}
-        </button>
+    <div className="bg-white rounded-lg p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-bold">风格模板管理</h2>
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>新建模板</Button>
       </div>
+      <Table columns={columns} dataSource={templates} rowKey="id" loading={loading} size="middle" />
 
-      {showCreate && (
-        <form onSubmit={handleSubmit} className="bg-dark-800 rounded-lg p-6 mb-6 space-y-4">
-          <h2 className="text-lg font-semibold text-white mb-2">
-            {editingId ? '编辑模版' : '新建模版'}
-          </h2>
-          <div>
-            <label className="block text-sm text-slate-300 mb-1">名称 *</label>
-            <input
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="w-full px-3 py-2 bg-dark-700 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:border-primary"
-              placeholder="例如: 现代都市、古装仙侠"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm text-slate-300 mb-1">描述</label>
-            <input
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="w-full px-3 py-2 bg-dark-700 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:border-primary"
-              placeholder="简短描述此模版的风格"
-            />
-          </div>
-          <div>
-            <label className="block text-sm text-slate-300 mb-1">分镜提示词 (Breakdown Prompt)</label>
-            <textarea
-              value={form.breakdownPrompt}
-              onChange={(e) => setForm({ ...form, breakdownPrompt: e.target.value })}
-              className="w-full px-3 py-2 bg-dark-700 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:border-primary h-24 resize-y font-mono"
-              placeholder="AI 分镜拆解的系统提示词..."
-            />
-          </div>
-          <div>
-            <label className="block text-sm text-slate-300 mb-1">图片提示词 (Image Prompt)</label>
-            <textarea
-              value={form.imagePrompt}
-              onChange={(e) => setForm({ ...form, imagePrompt: e.target.value })}
-              className="w-full px-3 py-2 bg-dark-700 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:border-primary h-24 resize-y font-mono"
-              placeholder="图片生成的系统提示词..."
-            />
-          </div>
-          <div>
-            <label className="block text-sm text-slate-300 mb-1">视频提示词 (Video Prompt)</label>
-            <textarea
-              value={form.videoPrompt}
-              onChange={(e) => setForm({ ...form, videoPrompt: e.target.value })}
-              className="w-full px-3 py-2 bg-dark-700 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:border-primary h-24 resize-y font-mono"
-              placeholder="视频生成的系统提示词..."
-            />
-          </div>
-          {error && <p className="text-red-400 text-sm">{error}</p>}
-          <button
-            type="submit"
-            className="px-6 py-2 bg-primary hover:bg-indigo-600 text-white rounded-lg text-sm transition-colors"
-          >
-            {editingId ? '保存修改' : '创建模版'}
-          </button>
-        </form>
-      )}
-
-      <div className="bg-dark-800 rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-slate-700 text-slate-400">
-              <th className="text-left p-3 w-12">ID</th>
-              <th className="text-left p-3">名称</th>
-              <th className="text-left p-3">描述</th>
-              <th className="text-left p-3 w-24">分镜</th>
-              <th className="text-left p-3 w-24">图片</th>
-              <th className="text-left p-3 w-24">视频</th>
-              <th className="text-left p-3 w-32">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            {templates.map((t) => (
-              <tr key={t.id} className="border-b border-slate-700/50 text-slate-300 hover:bg-slate-700/30 transition-colors">
-                <td className="p-3 text-slate-500">{t.id}</td>
-                <td className="p-3 font-medium">{t.name}</td>
-                <td className="p-3 text-slate-400 max-w-48 truncate">{t.description}</td>
-                <td className="p-3">
-                  <span className={`px-1.5 py-0.5 rounded text-xs ${t.breakdownPrompt ? 'bg-indigo-500/20 text-indigo-300' : 'bg-slate-700/50 text-slate-500'}`}>
-                    {t.breakdownPrompt ? '配置' : '未配置'}
-                  </span>
-                </td>
-                <td className="p-3">
-                  <span className={`px-1.5 py-0.5 rounded text-xs ${t.imagePrompt ? 'bg-purple-500/20 text-purple-300' : 'bg-slate-700/50 text-slate-500'}`}>
-                    {t.imagePrompt ? '配置' : '未配置'}
-                  </span>
-                </td>
-                <td className="p-3">
-                  <span className={`px-1.5 py-0.5 rounded text-xs ${t.videoPrompt ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-700/50 text-slate-500'}`}>
-                    {t.videoPrompt ? '配置' : '未配置'}
-                  </span>
-                </td>
-                <td className="p-3 space-x-2">
-                  <button onClick={() => handleEdit(t)} className="text-xs text-primary hover:underline">编辑</button>
-                  <button onClick={() => handleDelete(t.id)} className="text-xs text-red-400 hover:underline">删除</button>
-                </td>
-              </tr>
-            ))}
-            {templates.length === 0 && (
-              <tr>
-                <td colSpan={7} className="p-8 text-center text-slate-500">暂无样式模版，点击"新建模版"创建第一个</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <Modal
+        title={editingId ? '编辑模板' : '新建模板'}
+        open={modalOpen}
+        onOk={handleSubmit}
+        onCancel={() => setModalOpen(false)}
+        width={640}
+        destroyOnClose
+      >
+        <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item name="name" label="名称" rules={[{ required: true, message: '请输入模板名称' }]}>
+            <Input placeholder="例如：都市现代风、古装仙侠风" />
+          </Form.Item>
+          <Form.Item name="description" label="描述">
+            <Input placeholder="简短描述此模板的风格特点" />
+          </Form.Item>
+          <Form.Item name="breakdownPrompt" label="分镜拆解提示词"
+            tooltip="AI 拆解剧本时使用的系统提示词">
+            <TextArea rows={3} placeholder="你是一位专业的动漫分镜师..." />
+          </Form.Item>
+          <Form.Item name="imagePrompt" label="图片生成提示词"
+            tooltip="生成图片时自动添加的前缀（风格、画质等）">
+            <TextArea rows={2} placeholder="anime style, high quality, detailed" />
+          </Form.Item>
+          <Form.Item name="videoPrompt" label="视频生成提示词"
+            tooltip="生成视频时自动添加的前缀（运镜、风格等）">
+            <TextArea rows={2} placeholder="cinematic camera movement, smooth animation" />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };
