@@ -60,16 +60,16 @@ development_status:
   epic-2-retrospective: optional
 
   # Epic 3: 项目与集数管理 (depends on Story 7.1 for template selection)
-  epic-3: backlog
-  3-1-project-crud-and-style-template-selection: backlog
-  3-2-episode-management: backlog
+  epic-3: done
+  3-1-project-crud-and-style-template-selection: done
+  3-2-episode-management: done
   epic-3-retrospective: optional
 
   # Epic 4: 剧本导入与 AI 分镜拆解
-  epic-4: backlog
-  4-1-script-upload-and-editing: backlog
-  4-2-ai-storyboard-breakdown-gemini-backend-proxy: backlog
-  4-3-panel-manual-adjustment-and-prompt-editing: backlog
+  epic-4: done
+  4-1-script-upload-and-editing: done
+  4-2-ai-storyboard-breakdown-gemini-backend-proxy: done
+  4-3-panel-manual-adjustment-and-prompt-editing: done
   epic-4-retrospective: optional
 
   # Epic 5: 图片生成与任务管理

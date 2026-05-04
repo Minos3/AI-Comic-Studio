@@ -31,11 +31,15 @@ import projectsRoutes from './routes/projects.routes.js';
 import usersAdminRoutes from './routes/users.routes.js';
 import meRoutes from './routes/me.routes.js';
 import templatesRoutes from './routes/templates.routes.js';
+import scriptsRoutes from './routes/scripts.routes.js';
+import panelsRoutes from './routes/panels.routes.js';
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/projects', projectsRoutes);
 app.use('/api/v1/admin/users', usersAdminRoutes);
 app.use('/api/v1/users', meRoutes);
 app.use('/api/v1/templates', templatesRoutes);
+app.use('/api/v1', scriptsRoutes);
+app.use('/api/v1', panelsRoutes);
 
 // 404 handler
 app.use((_req, res) => {

@@ -74,7 +74,7 @@ const Home: React.FC<HomeProps> = ({ onSelectProject }) => {
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const newFiles = Array.from(e.target.files).map(f => f.name);
+      const newFiles = Array.from(e.target.files as FileList).map((f: File) => f.name);
       setExistingScripts(prev => [...prev, ...newFiles]);
     }
   };
