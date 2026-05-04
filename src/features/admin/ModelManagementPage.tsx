@@ -120,7 +120,7 @@ const ModelManagementPage: React.FC = () => {
   ];
 
   return (
-    <div style={{ maxWidth: 1100 }}>
+    <div>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
         <div>
@@ -149,7 +149,7 @@ const ModelManagementPage: React.FC = () => {
           <Button type="primary" onClick={() => handleCreate(activeTab !== 'all' ? activeTab : undefined)}>添加模型</Button>
         </Empty>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
           {filtered.map((m) => {
             const cfg = TYPE_CONFIG[m.type] || TYPE_CONFIG.image;
             return (
