@@ -131,13 +131,13 @@ const AssetManager: React.FC<{ type: AppView; projectId?: number }> = ({ type, p
 
   const handleGeneratePortrait = async () => {
     if (!projectId || !activeChar) return;
-    const prompt = prompt('输入角色画像生成提示词（英文）:', `${activeChar.name}, ${activeChar.gender}, ${activeChar.age} years old, ${activeChar.description?.substring(0, 80)}`);
-    if (!prompt) return;
+    const promptText = window.prompt('输入角色画像生成提示词（英文）:', `${activeChar.name}, ${activeChar.gender}, ${activeChar.age} years old, ${activeChar.description?.substring(0, 80)}`);
+    if (!promptText) return;
     setIsGenerating(true);
     try {
       const res = await api.post('/tasks', {
         panelId: 0, type: 'image', modelId: 1,
-        prompt: `Character portrait: ${prompt}, solo, portrait, detailed face, professional illustration`,
+        prompt: `Character portrait: ${promptText}, solo, portrait, detailed face, professional illustration`,
       });
       if (res.data.success) {
         alert('任务已提交！请到「片段」页面查看生成结果。生成后可在素材区关联到此角色。');

@@ -96,11 +96,11 @@ const SceneManager: React.FC<{ projectId?: number }> = ({ projectId }) => {
   const handleGenerateVariation = async (varId: string) => {
     if (!activeScene || !projectId) return;
     const variation = activeScene.variations.find(v => v.id === varId);
-    const prompt = variation?.description || activeScene.description;
-    if (!prompt) { alert('请先填写场景描述'); return; }
+    const promptText = variation?.description || activeScene.description;
+    if (!promptText) { alert('请先填写场景描述'); return; }
     setIsGenerating(true);
     try {
-      await api.post('/tasks', { panelId: 0, type: 'image', modelId: 1, prompt: `Scene: ${prompt}, ${activeScene.name}, wide angle, detailed environment` });
+      await api.post('/tasks', { panelId: 0, type: 'image', modelId: 1, prompt: `Scene: ${promptText}, ${activeScene.name}, wide angle, detailed environment` });
       alert('任务已提交！请在「片段」页面查看生成结果。');
     } catch (err: any) {
       alert('提交失败：' + (err.response?.data?.error?.message || '请先配置 AI 模型'));
@@ -158,11 +158,11 @@ const SceneManager: React.FC<{ projectId?: number }> = ({ projectId }) => {
 
   const handleGenerateSceneImage = async () => {
     if (!projectId || !activeScene) return;
-    const prompt = prompt('输入场景生成提示词（英文）:', activeScene.description?.substring(0, 100) || activeScene.name);
-    if (!prompt) return;
+    const promptText = window.prompt('输入场景生成提示词（英文）:', activeScene.description?.substring(0, 100) || activeScene.name);
+    if (!promptText) return;
     setIsGenerating(true);
     try {
-      await api.post('/tasks', { panelId: 0, type: 'image', modelId: 1, prompt: `Scene: ${prompt}, wide angle, detailed environment, professional illustration` });
+      await api.post('/tasks', { panelId: 0, type: 'image', modelId: 1, prompt: `Scene: ${promptText}, wide angle, detailed environment, professional illustration` });
       alert('任务已提交！请到「片段」页面查看生成结果。');
     } catch (err: any) {
       alert('生成失败：' + (err.response?.data?.error?.message || '请先配置 AI 模型'));

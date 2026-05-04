@@ -43,10 +43,10 @@ const ItemManager: React.FC<{ projectId?: number }> = ({ projectId }) => {
   };
 
   const handleGenerate = async (item: Item) => {
-    const prompt = prompt('输入物品生成提示词（英文）:', item.name + (item.description ? ', ' + item.description.substring(0, 80) : ''));
-    if (!prompt || !projectId) return;
+    const promptText = window.prompt('输入物品生成提示词（英文）:', item.name + (item.description ? ', ' + item.description.substring(0, 80) : ''));
+    if (!promptText || !projectId) return;
     try {
-      await api.post('/tasks', { panelId: 0, type: 'image', modelId: 1, prompt: `Item: ${prompt}, product shot, white background, detailed` });
+      await api.post('/tasks', { panelId: 0, type: 'image', modelId: 1, prompt: `Item: ${promptText}, product shot, white background, detailed` });
       alert('任务已提交！请在「片段」页面查看生成结果。');
     } catch (err: any) {
       alert('生成失败：' + (err.response?.data?.error?.message || '请先配置 AI 模型'));

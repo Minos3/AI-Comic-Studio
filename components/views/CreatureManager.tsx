@@ -40,10 +40,10 @@ const CreatureManager: React.FC<{ projectId?: number }> = ({ projectId }) => {
   };
 
   const handleGenerate = async (c: Creature) => {
-    const prompt = prompt('输入生物生成提示词（英文）:', c.name + (c.description ? ', ' + c.description.substring(0, 80) : ''));
-    if (!prompt || !projectId) return;
+    const promptText = window.prompt('输入生物生成提示词（英文）:', c.name + (c.description ? ', ' + c.description.substring(0, 80) : ''));
+    if (!promptText || !projectId) return;
     try {
-      await api.post('/tasks', { panelId: 0, type: 'image', modelId: 1, prompt: `Creature: ${prompt}, detailed creature design, professional illustration` });
+      await api.post('/tasks', { panelId: 0, type: 'image', modelId: 1, prompt: `Creature: ${promptText}, detailed creature design, professional illustration` });
       alert('任务已提交！请在「片段」页面查看生成结果。');
     } catch (err: any) { alert('生成失败：' + (err.response?.data?.error?.message || '请先配置 AI 模型')); }
   };
