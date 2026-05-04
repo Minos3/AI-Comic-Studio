@@ -16,6 +16,19 @@ app.use((req, _res, next) => {
   next();
 });
 
+// Root
+app.get('/', (_req, res) => {
+  res.json({
+    success: true,
+    data: {
+      name: '梦境AI短剧平台 API',
+      version: '2.0.0',
+      docs: '/api/v1/health',
+      frontend: 'http://localhost:3000',
+    },
+  });
+});
+
 // Health check
 app.get('/api/v1/health', async (_req, res) => {
   const dbOk = await testConnection();
@@ -44,6 +57,19 @@ app.use('/api/v1', scriptsRoutes);
 app.use('/api/v1', panelsRoutes);
 app.use('/api/v1', tasksRoutes);
 app.use('/api/v1', modelsRoutes);
+
+// Root
+app.get('/', (_req, res) => {
+  res.json({
+    success: true,
+    data: {
+      name: '梦境AI短剧平台 API',
+      version: '2.0.0',
+      docs: '/api/v1/health',
+      frontend: 'http://localhost:3000',
+    },
+  });
+});
 
 // 404 handler
 app.use((_req, res) => {
