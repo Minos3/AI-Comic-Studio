@@ -93,20 +93,20 @@ const SceneManager: React.FC<{ projectId?: number }> = ({ projectId }) => {
     setScenes(prev => prev.map(s => s.id === selectedId ? { ...s, ...updates } : s));
   };
 
-  const handleGenerateVariation = (varId: string) => {
+  const handleGenerateVariation = async (varId: string) => {
+    if (!activeScene || !projectId) return;
+    const variation = activeScene.variations.find(v => v.id === varId);
+    const prompt = variation?.description || activeScene.description;
+    if (!prompt) { alert('请先填写场景描述'); return; }
     setIsGenerating(true);
-    setTimeout(() => {
-      setScenes(prev => prev.map(s => {
-        if (s.id === selectedId) {
-          return {
-            ...s,
-            variations: s.variations.map(v => v.id === varId ? { ...v, status: 'generated', imageUrl: `https://picsum.photos/seed/${varId}_gen/600/337` } : v)
-          };
-        }
-        return s;
-      }));
+    try {
+      await api.post('/tasks', { panelId: 0, type: 'image', modelId: 1, prompt: `Scene: ${prompt}, ${activeScene.name}, wide angle, detailed environment` });
+      alert('任务已提交！请在「片段」页面查看生成结果。');
+    } catch (err: any) {
+      alert('提交失败：' + (err.response?.data?.error?.message || '请先配置 AI 模型'));
+    } finally {
       setIsGenerating(false);
-    }, 2000);
+    }
   };
 
   const handleDeleteVariation = (varId: string) => {

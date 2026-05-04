@@ -212,22 +212,24 @@ const CreationTasks: React.FC<{ project: Project | null; onProjectUpdated: (p: P
     setDraggedShotIndex(null);
   };
 
-  const simulateGeneration = () => {
+  const handleGenerate = async () => {
+    if (!currentShot || !project) return;
+    const prompt = currentShot.prompt || currentShot.description;
+    if (!prompt) { alert('请先填写提示词'); return; }
     setIsGenerating(true);
-    setTimeout(() => {
-      const newMaterial: Material = {
-        id: 'new_' + Date.now(),
-        type: genTab,
-        url: genTab === 'video' ? 'https://media.w3.org/2010/05/sintel/trailer.mp4' : `https://picsum.photos/seed/${Date.now()}/800/450`,
-        thumbnail: `https://picsum.photos/seed/${Date.now()}/400/225`,
-        name: genTab === 'video' ? 'AI 视频片段' : 'AI 生成原画',
-      };
-      if (!currentEpisode) return;
-      setEpisodes((prev) => prev.map((ep) => ep.id === currentEpisode.id ? {
-        ...ep, shots: ep.shots.map((s) => s.id === selectedShotId ? { ...s, status: 'completed', activeMaterialId: newMaterial.id, materials: [newMaterial, ...s.materials] } : s),
-      } : ep));
+    try {
+      const res = await api.post('/tasks', {
+        panelId: 0, type: genTab, modelId: genTab === 'image' ? 1 : 3,
+        prompt: genTab === 'image' ? `${prompt}, 16:9, high quality` : `${prompt}, smooth motion, ${aspectRatio}`,
+      });
+      if (res.data.success) {
+        alert('任务已提交！WebSocket 将实时推送生成状态。');
+      }
+    } catch (err: any) {
+      alert('提交失败：' + (err.response?.data?.error?.message || '请先配置 AI 模型'));
+    } finally {
       setIsGenerating(false);
-    }, 3000);
+    }
   };
 
   const StatusBadge = ({ status }: { status: EpisodeStatus }) => {
@@ -411,7 +413,7 @@ const CreationTasks: React.FC<{ project: Project | null; onProjectUpdated: (p: P
                 </div>
 
                 <div className="p-4 bg-slate-900/50 border-t border-slate-800/50">
-                  <button onClick={simulateGeneration} disabled={isGenerating || !currentShot}
+                  <button onClick={handleGenerate} disabled={isGenerating || !currentShot}
                     className="w-full py-3 bg-primary hover:bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
                     {isGenerating ? '生成中...' : `生成${genTab === 'image' ? '图片' : '视频'}`}
                   </button>

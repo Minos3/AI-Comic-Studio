@@ -112,9 +112,9 @@ const ItemManager: React.FC<{ projectId?: number }> = ({ projectId }) => {
                   </div>
                   <p className="text-[10px] text-slate-500 line-clamp-2">{item.description || '暂无描述'}</p>
                   <div className="flex gap-2 mt-auto">
-                    <button onClick={() => handleGenerate(item)} className="text-[9px] text-primary hover:text-indigo-400 border border-primary/20 px-1.5 py-0.5 rounded">AI生成</button>
-                    <button onClick={() => { setUploadingFor(item.id); fileRef.current?.click(); }} className="text-[9px] text-slate-400 hover:text-white border border-slate-700 px-1.5 py-0.5 rounded">上传</button>
-                    <button onClick={() => handleDelete(item.id)} className="text-[9px] text-red-400 hover:text-red-300 ml-auto">删除</button>
+                    <button onClick={() => handleGenerate(item)} className="text-[11px] font-bold px-2.5 py-1.5 bg-primary text-white rounded-lg hover:bg-indigo-600 transition-colors">AI 生成</button>
+                    <button onClick={() => { setUploadingFor(item.id); fileRef.current?.click(); }} className="text-[11px] font-bold px-2.5 py-1.5 border border-slate-600 text-slate-300 rounded-lg hover:bg-slate-800 transition-colors">上传图片</button>
+                    <button onClick={() => handleDelete(item.id)} className="text-[11px] text-red-400 hover:text-red-300 ml-auto">删除</button>
                   </div>
                 </div>
               </div>
