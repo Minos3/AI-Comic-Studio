@@ -81,9 +81,9 @@ development_status:
   epic-5-retrospective: optional
 
   # Epic 6: 视频生成
-  epic-6: backlog
-  6-1-video-generation-adapters-seedance-sora: backlog
-  6-2-video-generation-task-submission-and-result-display: backlog
+  epic-6: done
+  6-1-video-generation-adapters-seedance-sora: done
+  6-2-video-generation-task-submission-and-result-display: done
   epic-6-retrospective: optional
 
   # Epic 7: 后台管理与运维

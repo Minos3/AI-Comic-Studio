@@ -98,9 +98,36 @@ async function executeTask(taskId: number) {
     await updateTaskStatus(taskId, 'submitted');
     emitTaskEvent({ ...task, status: 'submitted' });
 
+    // For video tasks, find the latest completed image task for this panel as input
+    let imageUrl: string | undefined;
+    let duration: number | undefined;
+    const configJson = model.configJson ? JSON.parse(model.configJson) : {};
+
+    if (task.type === 'video') {
+      // Look for the latest completed image task for this panel
+      const imageTask = await db
+        .select()
+        .from(tasks)
+        .where(eq(tasks.panelId, task.panelId))
+        .orderBy(asc(tasks.createdAt))
+        .all()
+        .reverse()
+        .find((t) => t.type === 'image' && t.status === 'completed' && t.resultUrl);
+
+      if (imageTask?.resultUrl) {
+        imageUrl = imageTask.resultUrl;
+        if (!imageUrl.startsWith('http')) {
+          imageUrl = `http://localhost:${process.env.PORT || 3001}${imageUrl}`;
+        }
+      }
+      duration = configJson.duration || 5;
+    }
+
     const remoteTaskId = await adapter.submitTask(task.prompt || '', {
       apiUrl: model.apiUrl || '',
       apiKey: model.apiKey || '',
+      imageUrl,
+      duration,
     });
 
     await db
@@ -111,12 +138,15 @@ async function executeTask(taskId: number) {
     task.status = 'processing' as any;
     emitTaskEvent(task);
 
-    // Poll for result (simplified: try once after delay, in production use proper polling)
-    const result = await pollForResult(adapter, remoteTaskId, model.apiUrl || '', model.apiKey || '');
+    // Poll for result
+    const maxRetries = task.type === 'video' ? 180 : 60; // 15 min for video, 5 min for image
+    const pollInterval = task.type === 'video' ? 10000 : 5000;
+    const result = await pollForResult(adapter, remoteTaskId, model.apiUrl || '', model.apiKey || '', maxRetries, pollInterval);
 
     if (result) {
       // Download result to local storage
-      const storagePath = `projects/episodes/panels/${task.panelId}/tasks/${taskId}.${result.endsWith('.mp4') ? 'mp4' : 'png'}`;
+      const ext = task.type === 'video' || result.endsWith('.mp4') ? 'mp4' : 'png';
+      const storagePath = `projects/episodes/panels/${task.panelId}/tasks/${taskId}.${ext}`;
       const response = await fetch(result);
       const buffer = Buffer.from(await response.arrayBuffer());
       const localPath = await storage.save(storagePath, buffer);

@@ -1,6 +1,7 @@
 import type { GenerationAdapter } from './base.adapter.js';
 import { nanobananaAdapter } from './nanobanana.adapter.js';
 import { jimengAdapter } from './jimeng.adapter.js';
+import { seedanceAdapter } from './seedance.adapter.js';
 
 class AdapterRegistry {
   private adapters = new Map<string, GenerationAdapter>();
@@ -8,6 +9,7 @@ class AdapterRegistry {
   constructor() {
     this.register(nanobananaAdapter);
     this.register(jimengAdapter);
+    this.register(seedanceAdapter);
   }
 
   register(adapter: GenerationAdapter) {
